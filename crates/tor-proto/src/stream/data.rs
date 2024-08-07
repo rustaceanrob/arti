@@ -2,7 +2,6 @@
 //! for byte-oriented communication.
 
 use crate::{Error, Result};
-use futures::future::BoxFuture;
 use tor_cell::relaycell::msg::EndReason;
 use tor_cell::relaycell::RelayCmd;
 
@@ -38,6 +37,8 @@ use tor_cell::relaycell::msg::Data;
 use tor_error::internal;
 
 use super::AnyCmdChecker;
+
+type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + Sync + 'a>>;
 
 /// An anonymized stream over the Tor network.
 ///
@@ -527,7 +528,7 @@ enum DataWriterState {
     /// The writer is flushing a cell.
     Flushing(
         #[educe(Debug(method = "skip_fmt"))]
-        Pin<Box<dyn Future<Output = (DataWriterImpl, Result<()>)> + Send>>,
+        Pin<Box<dyn Future<Output = (DataWriterImpl, Result<()>)> + Send + Sync>>,
     ),
 }
 
@@ -769,7 +770,7 @@ enum DataReaderState {
     /// progress it is making.
     ReadingCell(
         #[educe(Debug(method = "skip_fmt"))]
-        Pin<Box<dyn Future<Output = (DataReaderImpl, Result<()>)> + Send>>,
+        Pin<Box<dyn Future<Output = (DataReaderImpl, Result<()>)> + Send + Sync>>,
     ),
 }
 
